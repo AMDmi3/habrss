@@ -1,0 +1,15 @@
+- name: habr
+  urls:
+    - https://habr.com/ru/rss/flows/develop/all/?fl=ru
+    - https://habr.com/ru/rss/flows/popsci/all/?fl=ru
+  exclude:
+    - category: Natural Language Processing
+    - category: Swift
+    - category: Objective C
+    - category: PHP
+    - category: Java
+    - category: Разработка под iOS
+    - category: Умный дом
+    - category: Машинное обучение
+    #- category: Блог компании.*
+    - creator: ph_piter
