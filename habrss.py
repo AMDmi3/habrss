@@ -23,6 +23,7 @@ import asyncio
 import itertools
 import re
 import xml.etree.ElementTree as ET
+from collections import Counter
 from dataclasses import field
 from typing import TYPE_CHECKING, Iterable, Iterator, Optional
 
@@ -103,6 +104,60 @@ class FilterStatistics:
             del other[key]
 
         target[key] = item
+
+    @property
+    def passed_categories(self) -> list[tuple[int, str]]:
+        return sorted(
+            (
+                (count, key)
+                for key, count in Counter(
+                    category
+                    for item in self.passed.values()
+                    for category in item.categories
+                ).items()
+            ),
+            reverse=True
+        )
+
+    @property
+    def blocked_categories(self) -> list[tuple[int, str]]:
+        return sorted(
+            (
+                (count, key)
+                for key, count in Counter(
+                    category
+                    for item in self.blocked.values()
+                    for category in item.categories
+                ).items()
+            ),
+            reverse=True
+        )
+
+    @property
+    def passed_creators(self) -> list[tuple[int, str]]:
+        return sorted(
+            (
+                (count, key)
+                for key, count in Counter(
+                    item.creator
+                    for item in self.passed.values()
+                ).items()
+            ),
+            reverse=True
+        )
+
+    @property
+    def blocked_creators(self) -> list[tuple[int, str]]:
+        return sorted(
+            (
+                (count, key)
+                for key, count in Counter(
+                    item.creator
+                    for item in self.blocked.values()
+                ).items()
+            ),
+            reverse=True
+        )
 
 
 def parse_feed(content: str) -> Iterator[FeedItem]:
@@ -199,10 +254,11 @@ class Handler:
             <html>
             <head><title>Filter statistics</title></head>
             <body><h1>Filter statistics</h1>
+
             <table>
             <tr><th>Title</th><th>Creator</th><th>Categories</th></tr>
             <tr><td colspan="3"><h3>Blocked</h3></td></tr>
-            {% for item in blocked %}
+            {% for _, item in stats.blocked.items()|sort %}
             <tr>
             <td><a href="{{ item.link }}">{{ item.title }}</a></td>
             <td>{{ item.creator }}</td>
@@ -210,13 +266,47 @@ class Handler:
             </tr>
             {% endfor %}
             <tr><td colspan="3"><h3>Passed</h3></td></tr>
-            {% for item in passed %}
+            {% for _, item in stats.passed.items()|sort %}
             <tr>
             <td><a href="{{ item.link }}">{{ item.title }}</a></td>
             <td>{{ item.creator }}</td>
             <td>{{ item.categories | join(', ') }}</td>
             </tr>
             {% endfor %}
+            </table>
+
+            <h3>Blocked categories</h3>
+            <table>
+            <tr><th>Category</th><th>Count</th></tr>
+            {% for cat, count in stats.blocked_categories %}
+            <tr><td>{{ cat }}</td><td>{{ count }}</td></tr>
+            {% endfor %}
+            </table>
+
+            <h3>Passed categories</h3>
+            <table>
+            <tr><th>Category</th><th>Count</th></tr>
+            {% for cat, count in stats.passed_categories %}
+            <tr><td>{{ cat }}</td><td>{{ count }}</td></tr>
+            {% endfor %}
+            </table>
+
+            <h3>Blocked creators</h3>
+            <table>
+            <tr><th>Category</th><th>Count</th></tr>
+            {% for creator, count in stats.blocked_creators %}
+            <tr><td>{{ creator }}</td><td>{{ count }}</td></tr>
+            {% endfor %}
+            </table>
+
+            <h3>Passed creators</h3>
+            <table>
+            <tr><th>Category</th><th>Count</th></tr>
+            {% for creator, count in stats.passed_creators %}
+            <tr><td>{{ creator }}</td><td>{{ count }}</td></tr>
+            {% endfor %}
+            </table>
+
             </body>
             </html>
             """
@@ -264,10 +354,7 @@ class Handler:
 
     async def handle_stats(self, request):
         return aiohttp.web.Response(
-            text=self._stats_template.render(
-                passed=[item for _, item in sorted(self._stats.passed.items())],
-                blocked=[item for _, item in sorted(self._stats.blocked.items())],
-            ),
+            text=self._stats_template.render(stats=self._stats),
             content_type='text/html'
         )
 
