@@ -3,6 +3,13 @@
 This is a simple proxy which merges and filters RSS feeds from
 [habr.ru](https://habr.ru).
 
+Motivation: habr/geektimes, which were useful sources of knowledge
+once, are now clogged with low quality content and corporate blogs.
+When reading a feed of articles degrades into skipping through the
+garbage, automated solution comes in rescue. Apart from advanced
+filtering, this project is capable of skipping duplicate posts when
+being subscribed to multiple feeds.
+
 ## Usage
 
 ```
