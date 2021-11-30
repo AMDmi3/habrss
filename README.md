@@ -42,7 +42,7 @@ Example:
   include:
     - title: .*python.*
     - category: Python
-    - creator: Bright_Translate
+    - creator: Zelenyikot
 - name: anotherfeed
   urls:
     ...
