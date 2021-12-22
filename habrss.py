@@ -160,6 +160,10 @@ class FilterStatistics:
         )
 
 
+def cleanup_link(link: str) -> str:
+    return link.split('?utm')[0]
+
+
 def parse_feed(content: str) -> Iterator[FeedItem]:
     root = ET.fromstring(content)
 
@@ -168,7 +172,7 @@ def parse_feed(content: str) -> Iterator[FeedItem]:
             title=item.find('title').text,  # type: ignore
             guid=item.find('guid').text,  # type: ignore
             guid_permalink=item.find('guid').attrib.get('isPermaLink'),  # type: ignore
-            link=item.find('link').text,  # type: ignore
+            link=cleanup_link(item.find('link').text),  # type: ignore
             description=item.find('description').text,  # type: ignore
             pub_date=item.find('pubDate').text,  # type: ignore
             categories=[elt.text for elt in item.findall('category')],  # type: ignore
